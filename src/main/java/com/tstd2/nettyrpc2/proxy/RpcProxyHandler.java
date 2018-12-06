@@ -1,30 +1,24 @@
 package com.tstd2.nettyrpc2.proxy;
 
+import com.tstd2.nettyrpc2.CallBack;
+import com.tstd2.nettyrpc2.CallBackHolder;
+import com.tstd2.nettyrpc2.ResponseMsg;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 public class RpcProxyHandler extends ChannelInboundHandlerAdapter {
 
-    private Object response;
-
-    public Object getResponse() {
-        return this.response;
-    }
-
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         // 读取远程服务端信息包
-        response = msg;
-        System.out.println("接收到服务端的信息 " + response);
+        ResponseMsg response = (ResponseMsg) msg;
+        String serviceId = response.getServiceId();
+
+        CallBack callBack = CallBackHolder.get(serviceId);
+        if (callBack != null) {
+            CallBackHolder.remove(serviceId);
+            callBack.over(response);
+        }
     }
 
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        super.channelReadComplete(ctx);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);
-    }
 }

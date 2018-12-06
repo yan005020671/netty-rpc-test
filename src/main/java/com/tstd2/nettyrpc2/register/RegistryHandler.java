@@ -1,6 +1,7 @@
 package com.tstd2.nettyrpc2.register;
 
 import com.tstd2.nettyrpc2.RequestMsg;
+import com.tstd2.nettyrpc2.ResponseMsg;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -50,21 +51,23 @@ public class RegistryHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         // consumer的代理通过netty发过来的request信息包
-        Object response = new Object();
         // 反序列化
         RequestMsg request = (RequestMsg) msg;
+
+        ResponseMsg response = new ResponseMsg();
+        response.setServiceId(request.getServiceId());
+
         // zk当中进行匹配
         if (registryMap.containsKey(request.getClassName())) {
             // 服务实例对象
             Object clazz = registryMap.get(request.getClassName());
             // 代理对象里面方法名称和方法参数
             Method method = clazz.getClass().getMethod(request.getMethodName(), request.getParametersType());
-            response = method.invoke(clazz, request.getParametersValue());
+            Object result = method.invoke(clazz, request.getParametersValue());
+            response.setResult(result);
         }
         // netty异步的方式写回给客户端
-        ctx.write(response);
-        ctx.flush();
-        ctx.close();
+        ctx.writeAndFlush(response);
     }
 
     @Override
