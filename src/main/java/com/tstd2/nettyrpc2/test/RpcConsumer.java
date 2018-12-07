@@ -14,7 +14,7 @@ public class RpcConsumer {
 
     public static void main(String[] args) {
         // 通过代理机制获取远程处理执行代理对象
-        CalcService calcService = RpcProxy.create(CalcService.class);
+        final CalcService calcService = RpcProxy.create(CalcService.class);
         System.out.println(calcService.add(1, 2));
         System.out.println(calcService.add(1, 3));
         System.out.println(calcService.add(1, 4));
